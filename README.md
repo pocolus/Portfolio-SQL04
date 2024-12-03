@@ -1037,6 +1037,7 @@ Tenga en cuenta que deberá eliminar aquellos códigos de cliente que aparezcan 
 A. Utilizando la función YEAR de MySQL.
 B. Utilizando la función DATE_FORMAT de MySQL.
 C. Sin utilizar ninguna de las funciones anteriores.
+
 A.
 ```sql
 select distinct cliente.codigo_cliente
@@ -1085,6 +1086,7 @@ where fecha_entrega > fecha_esperada;
 A. Utilizando la función ADDDATE de MySQL.
 B. Utilizando la función DATEDIFF de MySQL.
 C. ¿Sería posible resolver esta consulta utilizando el operador de suma + o resta -? 
+
 A.
 ```sql
 select codigo_pedido, codigo_cliente, fecha_esperada, fecha_entrega
@@ -1266,8 +1268,8 @@ on detalle_pedido.codigo_producto = producto.codigo_producto;
 
 **1.4.6 Consultas multitabla (Composición externa)**
 Resuelva todas las consultas utilizando las cláusulas LEFT JOIN, RIGHT JOIN, NATURAL LEFT JOIN y NATURAL RIGHT JOIN.
-```sql
 1. Devuelve un listado que muestre solamente los clientes que no han realizado ningún pago. 
+```sql
 select nombre_cliente, cliente.apellido_contacto, cliente.codigo_cliente
 from cliente
 left join pago
@@ -1636,7 +1638,7 @@ FROM empleado e
 WHERE e.nombre = 'Alberto' AND e.apellido1 = 'Soria');
 ```
 
-1.4.8.2 Subconsultas con ALL y ANY
+**1.4.8.2 Subconsultas con ALL y ANY**
 8. Devuelve el nombre del cliente con mayor límite de crédito. 
 ```sql
 select nombre_cliente, limite_credito
@@ -1656,7 +1658,7 @@ from producto
 where cantidad_en_stock <= any (select min(cantidad_en_stock) from producto);
 ```
 
-1.4.8.3 Subconsultas con IN y NOT IN
+**1.4.8.3 Subconsultas con IN y NOT IN**
 11. Devuelve el nombre, apellido1 y cargo de los empleados que no representen a ningún cliente. 
 ```sql
 select nombre, apellido1, puesto 
@@ -1721,7 +1723,7 @@ on cliente.codigo_cliente = pedido.codigo_cliente
 where cliente.codigo_cliente not in (select codigo_cliente from pago);
 ```
 
-1.4.8.4 Subconsultas con EXISTS y NOT EXISTS
+**1.4.8.4 Subconsultas con EXISTS y NOT EXISTS**
 18. Devuelve un listado que muestre solamente los clientes que no han realizado ningún pago. 
 ```sql
 select codigo_cliente, nombre_cliente
@@ -1751,8 +1753,8 @@ where exists (select 1 from detalle_pedido
 where producto.codigo_producto = detalle_pedido.codigo_producto);
 ```
 
-**1.4.8.5 Subconsultas correlacionadas
-1.4.9 Consultas variadas**
+**1.4.8.5 Subconsultas correlacionadas**
+**1.4.9 Consultas variadas**
 1. Devuelve el listado de clientes indicando el nombre del cliente y cuántos pedidos ha realizado.  Tenga en cuenta que pueden existir clientes que no han realizado ningún pedido. 
 ```sql
 select cliente.codigo_cliente, nombre_cliente,
