@@ -985,6 +985,868 @@ INSERT INTO pago VALUES (38,'PayPal','ak-std-000026','2006-05-26',1171);
 
 # Consultas Base De Datos Tienda Informatica
 
+**1.4.4 Consultas sobre una tabla**
+1. Devuelve un listado con el código de oficina y la ciudad donde hay oficinas.
+```sql
+select codigo_oficina, ciudad
+from oficina;
+```
+2. Devuelve un listado con la ciudad y el teléfono de las oficinas de España.
+```sql
+select ciudad, telefono
+from oficina
+where pais = 'España';
+```
+3. Devuelve un listado con el nombre, apellidos y email de los empleados cuyo jefe tiene un código de jefe igual a 7.
+```sql
+select nombre, apellido1, email, codigo_jefe
+from empleado
+where codigo_jefe = 7;
+```
+4. Devuelve el nombre del puesto, nombre, apellidos y email del jefe de la empresa.
+```sql
+select puesto, Nombre, apellido1, apellido2, email
+from empleado
+where puesto = 'Director General';
+```
+5. Devuelve un listado con el nombre, apellidos y puesto de aquellos empleados que no sean representantes de ventas.
+```sql
+select nombre, apellido1, apellido2, puesto
+from empleado
+where puesto  not like '%representante ventas%';
+```
+Segunda opcion de responder la pregunta.
+```sql
+select nombre, apellido1, apellido2, puesto
+from empleado
+where puesto != 'representante ventas';
+```
+6. Devuelve un listado con el nombre de los todos los clientes españoles.
+```sql
+select *
+from cliente
+where pais = 'spain';
+```
+7. Devuelve un listado con los distintos estados por los que puede pasar un pedido.
+```sql
+select distinct estado
+from pedido;
+```
+8. Devuelve un listado con el código de cliente de aquellos clientes que realizaron algún pago en 2008. 
+Tenga en cuenta que deberá eliminar aquellos códigos de cliente que aparezcan repetidos. Resuelva la consulta:
+A. Utilizando la función YEAR de MySQL.
+B. Utilizando la función DATE_FORMAT de MySQL.
+C. Sin utilizar ninguna de las funciones anteriores.
+A.
+```sql
+select distinct cliente.codigo_cliente
+from cliente
+join pago
+on cliente.codigo_cliente = pago.codigo_cliente
+where year(pago.fecha_pago) = 2008;
+```
+Segunda opcion de responder la pregunta.
+```sql
+select codigo_cliente
+from cliente
+where codigo_cliente in (select codigo_cliente from pago
+where year(pago.fecha_pago) = 2008);
+```
+B.
+```sql
+select codigo_cliente
+from cliente
+where codigo_cliente in (select codigo_cliente from pago
+where date_format(fecha_pago, '%Y') = '2008');
+```
+C.
+```sql
+select distinct cliente.codigo_cliente
+from cliente
+join pago
+on cliente.codigo_cliente = pago.codigo_cliente
+where fecha_pago between '2008-01-01' and '2008-12-31';
+```
+9. Devuelve un listado con el código de pedido, código de cliente, fecha esperada y fecha de entrega de los 
+pedidos que no han sido entregados a tiempo.
+```sql
+select codigo_pedido, codigo_cliente, fecha_esperada, fecha_entrega
+from pedido
+where fecha_esperada < fecha_entrega;
+```
+Segunda opcion de responder la pregunta.
+```sql
+select codigo_pedido, codigo_cliente, fecha_esperada, fecha_entrega
+from pedido
+where fecha_entrega > fecha_esperada;
+```
+10. Devuelve un listado con el código de pedido, código de cliente, fecha esperada y fecha de entrega de los pedidos
+ cuya fecha de entrega ha sido al menos dos días antes de la fecha esperada.
+A. Utilizando la función ADDDATE de MySQL.
+B. Utilizando la función DATEDIFF de MySQL.
+C. ¿Sería posible resolver esta consulta utilizando el operador de suma + o resta -? 
+A.
+```sql
+select codigo_pedido, codigo_cliente, fecha_esperada, fecha_entrega
+from pedido
+where ADDDATE(fecha_entrega, 2) <= fecha_esperada;
+```
+B. 
+```sql
+select codigo_pedido, codigo_cliente, fecha_esperada, fecha_entrega
+from pedido
+where (datediff (fecha_entrega,fecha_esperada)) <= -2;
+```
+C. 
+```sql
+select codigo_pedido, codigo_cliente, fecha_esperada, fecha_entrega
+from pedido
+where fecha_entrega + 2 <= fecha_esperada;
+```
+-- Segunda opcion de responder la pregunta.
+```sql
+select codigo_pedido, codigo_cliente, fecha_esperada, fecha_entrega
+from pedido
+where fecha_esperada - 2 >= fecha_entrega;
+```
+11. Devuelve un listado de todos los pedidos que fueron rechazados en 2009.
+```sql
+select codigo_pedido, estado
+from pedido
+where estado = 'Rechazado';
+```
+12. Devuelve un listado de todos los pedidos que han sido entregados en el mes de enero de cualquier año.
+```sql
+select codigo_pedido, estado, fecha_entrega
+from pedido
+where month(fecha_entrega) = 01 and estado = 'Entregado';
+```
+13. Devuelve un listado con todos los pagos que se realizaron en el año 2008 mediante Paypal. Ordene el resultado de mayor a menor.
+```sql
+select codigo_cliente, forma_pago, fecha_pago
+from pago
+where year(fecha_pago) = 2008 and forma_pago = 'PayPal'
+order by fecha_pago desc;
+```
+14. Devuelve un listado con todas las formas de pago que aparecen en la tabla pago. Tenga en cuenta que no deben aparecer formas de pago repetidas.
+```sql
+select distinct forma_pago
+from pago;
+```
+ 15. Devuelve un listado con todos los productos que pertenecen a la gama Ornamentales y que tienen más de 100 unidades en stock. 
+El listado deberá estar ordenado por su precio de venta, mostrando en primer lugar los de mayor precio.
+```sql
+select  nombre, gama, cantidad_en_stock, precio_venta
+from producto
+where gama = 'Ornamentales' and cantidad_en_stock > 100
+order by precio_venta desc;
+```
+16. Devuelve un listado con todos los clientes que sean de la ciudad de Madrid y cuyo representante de ventas tenga el código de empleado 11 o 30.
+```sql
+select nombre_cliente, ciudad, codigo_empleado_rep_ventas
+from cliente
+where ciudad = 'Madrid' and codigo_empleado_rep_ventas in (11,30);
+```
+
+**1.4.5 Consultas multitabla (Composición interna)**
+Resuelva todas las consultas utilizando la sintaxis de SQL1 y SQL2. Las consultas con sintaxis de SQL2 se deben resolver con INNER JOIN y NATURAL JOIN.
+1. Obtén un listado con el nombre de cada cliente y el nombre y apellido de su representante de ventas. 
+```sql
+select nombre_cliente, nombre as empleado, apellido1
+from cliente
+join empleado
+on cliente.codigo_empleado_rep_ventas = empleado.codigo_empleado;
+```
+2. Muestra el nombre de los clientes que hayan realizado pagos junto con el nombre de sus representantes de ventas.
+```sql
+select distinct nombre_cliente, nombre as empleado, pago.codigo_cliente
+from cliente
+join empleado
+on cliente.codigo_empleado_rep_ventas = empleado.codigo_empleado
+join pago
+on cliente.codigo_cliente = pago.codigo_cliente;
+```
+3. Muestra el nombre de los clientes que no hayan realizado pagos junto con el nombre de sus representantes de ventas.
+```sql
+select nombre_cliente, nombre as empleado
+from cliente
+join empleado
+on cliente.codigo_empleado_rep_ventas = empleado.codigo_empleado
+where cliente.codigo_cliente not in (select pago.codigo_cliente from pago);
+```
+Segunda opcion de responder la pregunta.
+```sql
+select nombre_cliente, nombre as empleado, cliente.codigo_cliente
+from cliente
+left join pago
+on cliente.codigo_cliente = pago.codigo_cliente
+join empleado
+on cliente.codigo_empleado_rep_ventas = empleado.codigo_empleado
+where pago.codigo_cliente is null;
+```
+4. Devuelve el nombre de los clientes que han hecho pagos y el nombre de sus representantes junto con la ciudad de la 
+oficina a la que pertenece el representante. 
+```sql
+select distinct nombre_cliente, empleado.nombre as Representante, oficina.ciudad
+from cliente
+inner join pago
+on cliente.codigo_cliente = pago.codigo_cliente
+inner join empleado
+on cliente.codigo_empleado_rep_ventas = empleado.codigo_empleado
+inner join oficina
+on empleado.codigo_oficina = oficina.codigo_oficina;
+```
+5. Devuelve el nombre de los clientes que no hayan hecho pagos y el nombre de sus representantes junto con la 
+ciudad de la oficina a la que pertenece el representante. 
+```sql
+select  nombre_cliente, empleado.nombre as Representante, oficina.ciudad
+from cliente
+left join pago
+on cliente.codigo_cliente = pago.codigo_cliente
+inner join empleado
+on cliente.codigo_empleado_rep_ventas = empleado.codigo_empleado
+inner join oficina
+on empleado.codigo_oficina = oficina.codigo_oficina
+where pago.codigo_cliente is null;
+```
+6. Lista la dirección de las oficinas que tengan clientes en Fuenlabrada.
+```sql
+select oficina.linea_direccion1, cliente.ciudad
+from oficina
+join empleado
+on oficina.codigo_oficina = empleado.codigo_oficina
+join cliente
+on empleado.codigo_empleado = cliente.codigo_empleado_rep_ventas
+where cliente.ciudad = 'Fuenlabrada';
+```
+7. Devuelve el nombre de los clientes y el nombre de sus representantes junto con la ciudad de la oficina a la que pertenece el representante.
+```sql
+select nombre_cliente, empleado.nombre as Representante, oficina.ciudad
+from cliente
+join empleado
+on cliente.codigo_empleado_rep_ventas = empleado.codigo_empleado
+join oficina
+on empleado.codigo_oficina = oficina.codigo_oficina;
+```
+8. Devuelve un listado con el nombre de los empleados junto con el nombre de sus jefes.
+```sql
+select Em.nombre as Empleado, Je.nombre as Jefe
+from empleado Em 
+join empleado Je -- Self Join
+on Em.codigo_jefe = Je.codigo_empleado;
+```
+9. Devuelve un listado que muestre el nombre de cada empleados, el nombre de su jefe y el nombre del jefe de sus jefe.
+```sql
+select Em.nombre as Empleado, Je.nombre as Jefe, Je2.nombre as Jefe2
+from empleado Em 
+left join empleado Je -- Self Join
+on Em.codigo_jefe = Je.codigo_empleado
+left join empleado Je2 -- Self Join
+on Je.codigo_jefe = Je2.codigo_empleado;
+```
+10. Devuelve el nombre de los clientes a los que no se les ha entregado a tiempo un pedido.
+```sql
+select nombre_cliente, pedido.fecha_esperada, pedido.fecha_entrega, pedido.estado
+from cliente
+join pedido
+on cliente.codigo_cliente = pedido.codigo_cliente
+where fecha_entrega > fecha_esperada;
+```
+11. Devuelve un listado de las diferentes gamas de producto que ha comprado cada cliente.
+```sql
+select distinct cliente.nombre_cliente, producto.gama
+from cliente
+join pedido
+on cliente.codigo_cliente = pedido.codigo_cliente
+join detalle_pedido
+on pedido.codigo_pedido = detalle_pedido.codigo_pedido
+join producto
+on detalle_pedido.codigo_producto = producto.codigo_producto;
+```
+
+**1.4.6 Consultas multitabla (Composición externa)**
+Resuelva todas las consultas utilizando las cláusulas LEFT JOIN, RIGHT JOIN, NATURAL LEFT JOIN y NATURAL RIGHT JOIN.
+```sql
+1. Devuelve un listado que muestre solamente los clientes que no han realizado ningún pago. 
+select nombre_cliente, cliente.apellido_contacto, cliente.codigo_cliente
+from cliente
+left join pago
+on cliente.codigo_cliente = pago.codigo_cliente
+where pago.codigo_cliente is null;
+```
+2. Devuelve un listado que muestre solamente los clientes que no han realizado ningún pedido.
+```sql
+select nombre_cliente, cliente.apellido_contacto, cliente.codigo_cliente
+from cliente
+left join pedido
+on cliente.codigo_cliente = pedido.codigo_cliente
+where pedido.codigo_cliente is null;
+```
+3. Devuelve un listado que muestre los clientes que no han realizado ningún pago y los que no han realizado ningún pedido
+```sql
+select nombre_cliente, cliente.apellido_contacto, cliente.codigo_cliente
+from cliente
+left join pago
+on cliente.codigo_cliente = pago.codigo_cliente
+left join pedido
+on cliente.codigo_cliente = pedido.codigo_cliente
+where pago.codigo_cliente is null and pedido.codigo_cliente is null;
+```
+Segunda opcion de responder la pregunta.
+```sql
+select codigo_cliente, nombre_cliente
+from cliente
+where codigo_cliente not in (select codigo_cliente from pedido) and
+codigo_cliente not in (select codigo_cliente from pago);
+```
+4. Devuelve un listado que muestre solamente los empleados que no tienen una oficina asociada.
+```sql
+select codigo_empleado, nombre, apellido1
+from empleado
+left join oficina
+on empleado.codigo_oficina = oficina.codigo_oficina
+where oficina.codigo_oficina is null;
+```
+5. Devuelve un listado que muestre solamente los empleados que no tienen un cliente asociado.
+```sql
+select codigo_empleado, nombre, empleado.apellido1
+from empleado 
+left join cliente
+on empleado.codigo_empleado = cliente.codigo_empleado_rep_ventas
+where cliente.codigo_empleado_rep_ventas is null;
+```
+6. Devuelve un listado que muestre solamente los empleados que no tienen un cliente asociado junto con los datos de la oficina donde trabajan.
+```sql
+select codigo_empleado, empleado.nombre as empleado, empleado.apellido1 as apellido_empleado, oficina.codigo_oficina, oficina.ciudad
+from empleado
+left join cliente
+on empleado.codigo_empleado = cliente.codigo_empleado_rep_ventas
+join oficina
+on empleado.codigo_oficina = oficina.codigo_oficina
+where cliente.codigo_cliente is null;
+```
+7. Devuelve un listado que muestre los empleados que no tienen una oficina asociada y los que no tienen un cliente asociado.
+```sql
+select codigo_empleado, nombre, apellido1
+from empleado
+left join oficina
+on empleado.codigo_oficina = oficina.codigo_oficina
+left join cliente
+on empleado.codigo_empleado = cliente.codigo_empleado_rep_ventas
+where oficina.codigo_oficina is null and cliente.codigo_cliente is null;
+```
+8. Devuelve un listado de los productos que nunca han aparecido en un pedido.
+```sql
+select producto.codigo_producto, nombre
+from producto 
+left join detalle_pedido
+on producto.codigo_producto = detalle_pedido.codigo_producto
+where detalle_pedido.codigo_pedido is null;
+```
+9. Devuelve un listado de los productos que nunca han aparecido en un pedido. El resultado debe mostrar el nombre, la descripción y la imagen del producto. 
+```sql
+select producto.nombre, producto.descripcion, gama_producto.imagen
+from producto
+join gama_producto
+on producto. gama = gama_producto.gama
+left join detalle_pedido
+on producto.codigo_producto = detalle_pedido.codigo_producto
+where detalle_pedido.codigo_producto is null;
+```
+10. Devuelve las oficinas donde no trabajan ninguno de los empleados que hayan sido los representantes de ventas de algún cliente que haya realizado la compra de algún producto de la gama Frutales.
+```sql
+ SELECT 
+oficina.codigo_oficina, 
+oficina.ciudad, 
+oficina.pais
+FROM 
+oficina
+LEFT JOIN 
+empleado ON oficina.codigo_oficina = empleado.codigo_oficina
+WHERE 
+oficina.codigo_oficina NOT IN (
+SELECT DISTINCT empleado.codigo_oficina
+FROM cliente
+JOIN empleado ON cliente.codigo_empleado_rep_ventas = empleado.codigo_empleado
+JOIN pedido ON cliente.codigo_cliente = pedido.codigo_cliente
+JOIN detalle_pedido ON pedido.codigo_pedido = detalle_pedido.codigo_pedido
+JOIN producto ON detalle_pedido.codigo_producto = producto.codigo_producto
+WHERE producto.gama = 'Frutales');
+```
+11. Devuelve un listado con los clientes que han realizado algún pedido pero no han realizado ningún pago.
+```sql
+select distinct nombre_cliente
+from cliente
+join pedido
+on cliente.codigo_cliente = pedido.codigo_cliente
+left join pago
+on cliente.codigo_cliente = pago.codigo_cliente
+where pago.codigo_cliente is null;
+```
+12. Devuelve un listado con los datos de los empleados que no tienen clientes asociados y el nombre de su jefe asociado.
+```sql
+SELECT Em.nombre AS Empleado, Je.nombre AS Jefe
+FROM empleado Em
+LEFT JOIN cliente 
+ON Em.codigo_empleado = cliente.codigo_empleado_rep_ventas
+JOIN empleado Je -- Self Join
+ON Em.codigo_jefe = Je.codigo_empleado -- Tener en cuenta: Em.codigo_jefe = Je.codigo_empleado
+WHERE cliente.codigo_cliente IS NULL;
+```
+
+**1.4.7 Consultas resumen**
+1. ¿Cuántos empleados hay en la compañía? 
+```sql
+select count(codigo_empleado) as Numero_Empleados
+from empleado;
+```
+2. ¿Cuántos clientes tiene cada país?
+```sql
+select Pais, count(codigo_cliente) Numero_Clientes
+from cliente
+group by Pais;
+```
+3. ¿Cuál fue el pago medio en 2009?
+```sql
+select avg(total) as Promedio_Pago_2009
+from pago
+where year(fecha_pago) = 2009;
+```
+4. ¿Cuántos pedidos hay en cada estado? Ordena el resultado de forma descendente por el número de pedidos.
+```sql
+select estado, count(codigo_pedido) as Numero_Pedidos
+from pedido
+group by estado
+order by Numero_Pedidos desc;
+```
+5. Calcula el precio de venta del producto más caro y más barato en una misma consulta.
+```sql
+select max(precio_venta) as Precio_Mas_Costoso, min(precio_venta) as Precio_Menos_Costoso
+from producto;
+```
+6. Calcula el número de clientes que tiene la empresa.
+```sql
+select count(codigo_cliente) as Numero_Clientes
+from cliente;
+```
+7. ¿Cuántos clientes existen con domicilio en la ciudad de Madrid?
+```sql
+select count(codigo_cliente) as Numero_Clientes_Madrid
+from cliente
+where ciudad = 'Madrid';
+```
+8. ¿Calcula cuántos clientes tiene cada una de las ciudades que empiezan por M?
+```sql
+select count(codigo_cliente) as Numero_Clientes
+from cliente
+where ciudad like 'M%';
+```
+9. Devuelve el nombre de los representantes de ventas y el número de clientes al que atiende cada uno.
+```sql
+select nombre as Empleado, count(cliente.codigo_cliente) as Numero_Clientes
+from empleado
+join cliente
+on empleado.codigo_empleado = cliente.codigo_empleado_rep_ventas
+group by nombre;
+```
+10. Calcula el número de clientes que no tiene asignado representante de ventas.
+```sql
+select count(cliente.codigo_cliente) as Numero_Clientes
+from cliente
+left join empleado 
+on cliente.codigo_empleado_rep_ventas = empleado.codigo_empleado
+where empleado.codigo_empleado is null;
+```
+11. Calcula la fecha del primer y último pago realizado por cada uno de los clientes. El listado deberá mostrar el nombre y los apellidos de cada cliente. 
+```sql
+select cliente.nombre_cliente, cliente.apellido_contacto, max(pago.fecha_pago) as Ultimo_Pago, min(pago.fecha_pago) as Primer_Pago
+from cliente
+join pago
+on cliente.codigo_cliente = pago.codigo_cliente
+group by cliente.nombre_cliente, cliente.apellido_contacto;
+```
+12. Calcula el número de productos diferentes que hay en cada uno de los pedidos.
+ ```sql
+select codigo_pedido, count(distinct codigo_producto) as Numero_Producto
+from detalle_pedido
+group by codigo_pedido;
+```
+13. Calcula la suma de la cantidad total de todos los productos que aparecen en cada uno de los pedidos.
+```sql
+select codigo_pedido, sum(cantidad) as Cantidad_Total
+from detalle_pedido
+group by codigo_pedido;
+```
+14. Devuelve un listado de los 20 productos más vendidos y el número total de unidades que se han vendido de cada uno.  El listado deberá estar ordenado por el número total de unidades vendidas. 
+```sql
+select producto.codigo_producto, producto.nombre as Producto, sum(detalle_pedido.cantidad) as Unidades_Vendidas
+from producto
+join detalle_pedido
+on producto.codigo_producto = detalle_pedido.codigo_producto
+group by producto.codigo_producto, producto.nombre
+order by Unidades_Vendidas desc
+limit 20;
+```
+15. La facturación que ha tenido la empresa en toda la historia, indicando la base imponible, el IVA y el total facturado. La base imponible  se calcula sumando el coste del producto por el número de unidades vendidas de la tabla detalle_pedido. El IVA es el 21 % de la base imponible, y el total la suma de los dos campos anteriores 
+```sql
+select  sum(cantidad * precio_unidad) as Base_Imponible, 
+sum(0.21 * (cantidad * precio_unidad)) as iva,
+sum((cantidad * precio_unidad) +  0.21 * (cantidad * precio_unidad)) as Total
+from detalle_pedido;
+```
+Segunda opcion de responder la pregunta.
+```sql
+SELECT  
+SUM(cantidad * precio_unidad) AS Base_Imponible, 
+SUM(cantidad * precio_unidad) * 0.21 AS IVA,
+SUM(cantidad * precio_unidad) * 1.21 AS Total
+FROM detalle_pedido;
+```
+16. La misma información que en la pregunta anterior, pero agrupada por código de producto.
+```sql
+select codigo_producto, SUM(cantidad * precio_unidad) AS Base_Imponible, 
+SUM(cantidad * precio_unidad) * 0.21 AS IVA,
+sum((cantidad * precio_unidad) +  0.21 * (cantidad * precio_unidad)) as Total 
+from detalle_pedido
+group by codigo_producto;
+```
+Segunda opcion de responder la pregunta.
+```sql
+SELECT codigo_producto, SUM(cantidad * precio_unidad) AS Base_Imponible, 
+SUM(cantidad * precio_unidad) * 0.21 AS IVA,
+SUM(cantidad * precio_unidad) * 1.21 AS Total
+FROM detalle_pedido
+GROUP BY codigo_producto;
+```
+17. La misma información que en la pregunta anterior, pero agrupada por código de producto filtrada por los códigos que empiecen por OR.
+```sql
+select codigo_producto, SUM(cantidad * precio_unidad) AS Base_Imponible, 
+SUM(cantidad * precio_unidad) * 0.21 AS IVA,
+sum((cantidad * precio_unidad) +  0.21 * (cantidad * precio_unidad)) as Total 
+from detalle_pedido
+where codigo_producto like 'OR%'
+group by codigo_producto;
+```
+18. Lista las ventas totales de los productos que hayan facturado más de 3000 euros. Se mostrará el nombre, unidades vendidas, total facturado y total facturado con impuestos (21% IVA). 
+```sql
+select producto.nombre as Producto, sum(cantidad) as Unidades_Vendidas, 
+sum(cantidad*precio_unidad) as Total_Facturado,
+sum(cantidad*precio_unidad * 0.21 + cantidad*precio_unidad)  as con_iva
+from detalle_pedido
+join producto
+on detalle_pedido.codigo_producto = producto.codigo_producto
+group by  producto.nombre
+having sum(cantidad*precio_unidad) > 3000;
+```
+19. Muestre la suma total de todos los pagos que se realizaron para cada uno de los años que aparecen en la tabla pagos.
+```sql
+select year(fecha_pago) AS Years, 
+sum(total) as Pagos
+from pago
+group by year(fecha_pago);
+```
+
+**1.4.8 Subconsultas**
+1.4.8.1 Con operadores básicos de comparación
+1. Devuelve el nombre del cliente con mayor límite de crédito. 
+```sql
+select  nombre_cliente, limite_credito
+from cliente
+where limite_credito in (select max(limite_credito) from cliente);
+```
+Segunda opcion de responder la pregunta.
+```sql
+select nombre_cliente, limite_credito
+from cliente
+order by limite_credito desc
+limit 1;
+```
+2. Devuelve el nombre del producto que tenga el precio de venta más caro.
+```sql
+select nombre, precio_venta
+from producto
+where precio_venta in (select max(precio_venta) from producto);
+```
+3. Devuelve el nombre del producto del que se han vendido más unidades. (Tenga en cuenta que tendrá que calcular 
+cuál es el número total de unidades que se han vendido de cada producto a partir de los datos de la tabla detalle_pedido) 
+```sql
+SELECT 
+producto.nombre AS Producto, 
+SUM(detalle_pedido.cantidad) AS Unidades_Vendidas
+FROM detalle_pedido
+JOIN producto
+ON detalle_pedido.codigo_producto = producto.codigo_producto
+GROUP BY producto.nombre
+HAVING SUM(detalle_pedido.cantidad) = (
+SELECT MAX(Total_Ventas)
+FROM (
+SELECT 
+SUM(detalle_pedido.cantidad) AS Total_Ventas
+FROM detalle_pedido
+GROUP BY detalle_pedido.codigo_producto
+) AS Subconsulta
+);
+```
+Segunda opcion de responder la pregunta.
+```sql
+select producto.nombre as Producto, sum(cantidad) AS Numero_Unidades
+from detalle_pedido
+join producto
+on detalle_pedido.codigo_producto = producto.codigo_producto
+group by producto.nombre 
+order by Numero_Unidades desc
+limit 1;
+```
+4. Los clientes cuyo límite de crédito sea mayor que los pagos que haya realizado. (Sin utilizar INNER JOIN).
+```sql
+SELECT 
+cliente.nombre_cliente, 
+cliente.limite_credito
+FROM cliente
+WHERE cliente.limite_credito > (
+SELECT COALESCE(SUM(pago.total), 0) 
+FROM pago 
+WHERE pago.codigo_cliente = cliente.codigo_cliente
+);
+```
+5. Devuelve el producto que más unidades tiene en stock.
+```sql
+select codigo_producto, nombre, cantidad_en_stock
+from producto
+where cantidad_en_stock in (select max(cantidad_en_stock) from producto);
+```
+6. Devuelve el producto que menos unidades tiene en stock.
+```sql
+select codigo_producto, nombre, cantidad_en_stock
+from producto
+where cantidad_en_stock in (select min(cantidad_en_stock) from producto);
+```
+7. Devuelve el nombre, los apellidos y el email de los empleados que están a cargo de Alberto Soria.
+```sql
+select nombre, apellido1, apellido2, email
+from empleado
+where codigo_jefe = 3;
+```
+Segunda opcion de responder la pregunta.
+```sql
+SELECT CONCAT(e.nombre, ' ', e.apellido1, ' ', e.apellido2) AS 'Empleados a cargo de Alberto Soria'
+FROM empleado e
+WHERE e.codigo_jefe = (SELECT e.codigo_empleado 
+FROM empleado e
+WHERE e.nombre = 'Alberto' AND e.apellido1 = 'Soria');
+```
+
+1.4.8.2 Subconsultas con ALL y ANY
+8. Devuelve el nombre del cliente con mayor límite de crédito. 
+```sql
+select nombre_cliente, limite_credito
+from cliente 
+where limite_credito >= all (select max(limite_credito) from cliente);
+```
+9. Devuelve el nombre del producto que tenga el precio de venta más caro.
+```sql
+select nombre, precio_venta
+from producto
+where precio_venta >= all (select max(precio_venta) from producto);
+```
+10. Devuelve el producto que menos unidades tiene en stock.
+```sql
+select nombre, cantidad_en_stock
+from producto
+where cantidad_en_stock <= any (select min(cantidad_en_stock) from producto);
+```
+
+1.4.8.3 Subconsultas con IN y NOT IN
+11. Devuelve el nombre, apellido1 y cargo de los empleados que no representen a ningún cliente. 
+```sql
+select nombre, apellido1, puesto 
+from empleado
+where empleado.codigo_empleado not in (select cliente.codigo_empleado_rep_ventas from cliente);
+```
+12. Devuelve un listado que muestre solamente los clientes que no han realizado ningún pago.
+```sql
+select codigo_cliente, nombre_cliente
+from cliente
+where cliente.codigo_cliente not in (select pago.codigo_cliente from pago);
+```
+ 13. Devuelve un listado que muestre solamente los clientes que sí han realizado algún pago.
+```sql
+select codigo_cliente, nombre_cliente
+from cliente
+where cliente.codigo_cliente in (select pago.codigo_cliente from pago);
+```
+14. Devuelve un listado de los productos que nunca han aparecido en un pedido.
+```sql
+select codigo_producto, nombre
+from producto
+where producto.codigo_producto not in (select detalle_pedido.codigo_producto from detalle_pedido);
+```
+15. Devuelve el nombre, apellidos, puesto y teléfono de la oficina de aquellos empleados que no sean representante de ventas de ningún cliente.
+```sql
+select nombre, apellido1, apellido2, puesto, oficina.telefono
+from empleado
+join oficina
+on empleado.codigo_oficina = oficina.codigo_oficina
+where empleado.codigo_empleado not in (select cliente.codigo_empleado_rep_ventas from cliente);
+```
+16. Devuelve las oficinas donde no trabajan ninguno de los empleados que hayan sido los representantes de ventas de 
+algún cliente que haya realizado la compra de algún producto de la gama Frutales.
+```sql
+select oficina.codigo_oficina
+from oficina
+where oficina.codigo_oficina not in (select codigo_oficina from empleado
+inner join cliente
+on empleado.codigo_empleado = cliente.codigo_empleado_rep_ventas
+inner join pedido
+on cliente.codigo_cliente = pedido.codigo_cliente
+inner join detalle_pedido
+on pedido.codigo_pedido = detalle_pedido.codigo_pedido
+inner join producto
+on detalle_pedido.codigo_producto = producto.codigo_producto
+where producto.gama = 'frutales');
+```
+17. Devuelve un listado con los clientes que han realizado algún pedido pero no han realizado ningún pago.
+```sql
+select codigo_cliente, nombre_cliente
+from cliente
+where cliente.codigo_cliente in (select pedido.codigo_cliente from pedido
+where cliente.codigo_cliente not in ( select pago.codigo_cliente from pago));
+```
+Segunda opcion de responder la pregunta.
+```sql
+select distinct  cliente.codigo_cliente, nombre_cliente
+from cliente
+inner join pedido
+on cliente.codigo_cliente = pedido.codigo_cliente
+where cliente.codigo_cliente not in (select codigo_cliente from pago);
+```
+
+1.4.8.4 Subconsultas con EXISTS y NOT EXISTS
+18. Devuelve un listado que muestre solamente los clientes que no han realizado ningún pago. 
+```sql
+select codigo_cliente, nombre_cliente
+from cliente
+where not exists (select 1 from pago
+where cliente.codigo_cliente = pago.codigo_cliente);
+```
+19. Devuelve un listado que muestre solamente los clientes que sí han realizado algún pago.
+```sql
+select codigo_cliente, nombre_cliente
+from cliente
+where exists (select 1 from pago
+where cliente.codigo_cliente = pago.codigo_cliente);
+```
+20. Devuelve un listado de los productos que nunca han aparecido en un pedido.
+```sql
+select producto.codigo_producto, producto.nombre
+from producto
+where not exists (select 1 from detalle_pedido
+where producto.codigo_producto = detalle_pedido.codigo_producto);
+```
+21. Devuelve un listado de los productos que han aparecido en un pedido alguna vez.
+```sql
+select producto.codigo_producto, producto.nombre
+from producto
+where exists (select 1 from detalle_pedido
+where producto.codigo_producto = detalle_pedido.codigo_producto);
+```
+
+**1.4.8.5 Subconsultas correlacionadas
+1.4.9 Consultas variadas**
+1. Devuelve el listado de clientes indicando el nombre del cliente y cuántos pedidos ha realizado.  Tenga en cuenta que pueden existir clientes que no han realizado ningún pedido. 
+```sql
+select cliente.codigo_cliente, nombre_cliente,
+count(pedido.codigo_cliente) as Numero_Pedidos
+from cliente
+left join pedido
+on cliente.codigo_cliente = pedido.codigo_cliente
+group by cliente.codigo_cliente, nombre_cliente
+order by Numero_Pedidos desc;
+```
+2. Devuelve un listado con los nombres de los clientes y el total pagado por cada uno de ellos. Tenga en cuenta que pueden existir clientes que no han realizado ningún pago. 
+```sql
+select cliente.codigo_cliente, cliente.nombre_cliente,
+sum(pago.total) as Total_Pagado
+from cliente
+left join pago
+on cliente.codigo_cliente = pago.codigo_cliente
+group by cliente.codigo_cliente, cliente.nombre_cliente;
+```
+3. Devuelve el nombre de los clientes que hayan hecho pedidos en 2008 ordenados alfabéticamente de menor a mayor.
+```sql
+select cliente.codigo_cliente, cliente.nombre_cliente, fecha_pedido
+from cliente
+join pedido
+on cliente.codigo_cliente = pedido.codigo_cliente
+where year(fecha_pedido) = 2008
+order by fecha_pedido;
+```
+4. Devuelve el nombre del cliente, el nombre y primer apellido de su representante de ventas y el número de teléfono de la oficina del representante de ventas, de aquellos clientes que no hayan realizado ningún pago. 
+```sql
+select cliente.codigo_cliente, nombre_cliente, empleado.nombre as Nombre_Empleado, empleado.apellido1 as Apellido_Empleado, 
+oficina.telefono
+from cliente
+join empleado
+on cliente.codigo_empleado_rep_ventas = empleado.codigo_empleado
+join oficina
+on empleado.codigo_oficina = oficina.codigo_oficina
+left join pago
+on cliente.codigo_cliente = pago.codigo_cliente
+where pago.codigo_cliente is null;
+```
+Segunda opcion de responder la pregunta.
+ ```sql
+select nombre_cliente, nombre, apellido1, oficina.telefono
+from cliente
+inner join empleado
+on cliente.codigo_empleado_rep_ventas = empleado.codigo_empleado
+inner join oficina
+on empleado.codigo_oficina = oficina.codigo_oficina
+where cliente.codigo_cliente not in (select pago.codigo_cliente from pago);
+```
+5. Devuelve el listado de clientes donde aparezca el nombre del cliente, el nombre y primer apellido de su representante de ventas y la ciudad donde está su oficina. 
+```sql
+select cliente.nombre_cliente, empleado.nombre as Nombre_Empleado, empleado.apellido1 as Apellido_Empleado,
+oficina.ciudad as Ciudad_Oficina
+from cliente
+join empleado
+on cliente.codigo_empleado_rep_ventas = empleado.codigo_empleado
+join oficina
+on empleado.codigo_oficina = oficina.codigo_oficina;
+```
+6. Devuelve el nombre, apellidos, puesto y teléfono de la oficina de aquellos empleados que no sean representante de ventas de ningún cliente.
+```sql
+select nombre, apellido1, apellido2, puesto, oficina.telefono
+from empleado
+join oficina
+on empleado.codigo_oficina = oficina.codigo_oficina
+left join cliente
+on empleado.codigo_empleado = cliente.codigo_empleado_rep_ventas
+where cliente.codigo_cliente is null;
+```
+Segunda opcion de responder la pregunta.
+```sql
+select nombre, apellido1, apellido2, puesto, oficina.telefono
+from empleado
+join oficina
+on empleado.codigo_oficina = oficina.codigo_oficina
+where empleado.codigo_empleado not in (select cliente.codigo_empleado_rep_ventas from cliente);
+```
+7. Devuelve un listado indicando todas las ciudades donde hay oficinas y el número de empleados que tiene.
+```sql
+select ciudad, count(empleado.codigo_oficina) as Numero_Empleado
+from oficina
+join empleado
+on oficina.codigo_oficina = empleado.codigo_oficina
+group by ciudad;
+```
+ 
+
+
+
+
+
+
 
 
 
